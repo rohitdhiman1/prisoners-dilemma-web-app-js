@@ -3,8 +3,8 @@ const ScoringInstructions = () => (
         <h3>Scoring Rules (Max 10 Turns)</h3>
         <ul>
             <li>Both Cooperate: You both get 3 points.</li>
-            <li>You Cooperate, CLS-7 Defects: CLS-7 gets 5 points, you get 0.</li>
-            <li>You Defect, CLS-7 Cooperates: You get 5 points, CLS-7 gets 0.</li>
+            <li>You Cooperate, CLS-7 Defects: You get 0 points. CLS-7 gets 5 points.</li>
+            <li>You Defect, CLS-7 Cooperates: You get 5 points. CLS-7 gets 0 points.</li>
             <li>Both Defect: You both get 1 point.</li>
         </ul>
     </div>
