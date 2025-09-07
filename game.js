@@ -3,7 +3,13 @@ const Move = {
     DEFECT: 'DEFECT'
 };
 
+const PERSONALITIES = ['CAUTIOUS', 'AGGRESSIVE', 'UNPREDICTABLE'];
+let computerPersonality;
+
 function createGame() {
+    // Assign a random personality to the computer at the start of each game
+    computerPersonality = PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)];
+    
     return {
         userScore: 0,
         computerScore: 0,
@@ -17,35 +23,44 @@ function createGame() {
 
 function getComputerMove(game) {
     const turn = game.turn;
-    if (turn === 0) {
-        return Move.COOPERATE; // Always start by cooperating
-    }
+    const userMoves = game.userMoves;
+    const userLastMove = userMoves[turn - 1];
 
-    const userLastMove = game.userMoves[turn - 1];
-    const random = Math.random();
+    switch (computerPersonality) {
+        case 'CAUTIOUS':
+            // Starts with cooperation, classic Tit-for-Tat with forgiveness
+            if (turn === 0) return Move.COOPERATE;
+            if (userLastMove === Move.DEFECT) {
+                // Forgive with a 15% chance to break defection cycles
+                return Math.random() < 0.15 ? Move.COOPERATE : Move.DEFECT;
+            }
+            return Move.COOPERATE;
 
-    // Analyze user's overall behavior
-    const userDefections = game.userMoves.filter(m => m === Move.DEFECT).length;
-    const userCooperates = turn - userDefections;
+        case 'AGGRESSIVE':
+            // Starts with defection, looks for exploitation
+            if (turn === 0) return Move.DEFECT;
+            if (userLastMove === Move.DEFECT) {
+                return Move.DEFECT;
+            }
+            // High chance to probe even if user cooperates
+            return Math.random() < 0.3 ? Move.DEFECT : Move.COOPERATE;
 
-    // If user is generally cooperative, be mostly cooperative but probe for exploitation
-    if (userCooperates > userDefections) {
-        if (userLastMove === Move.COOPERATE) {
-            // 90% chance to cooperate, 10% to probe with a defection
-            return random > 0.1 ? Move.COOPERATE : Move.DEFECT;
-        } else { // User defected, retaliate (Tit-for-Tat)
-            return Move.DEFECT;
-        }
-    }
-    // If user is generally deceptive or balanced, be less forgiving
-    else {
-        if (userLastMove === Move.COOPERATE) {
-            // User is trying to win back trust. 25% chance to forgive.
-            return random > 0.75 ? Move.COOPERATE : Move.DEFECT;
-        } else { // User defected again, retaliate strongly.
-            // 95% chance to defect.
-            return random > 0.05 ? Move.DEFECT : Move.COOPERATE;
-        }
+        case 'UNPREDICTABLE':
+            // Wild card, less reliant on user's last move
+            if (turn < 2) { // Random opening
+                return Math.random() < 0.5 ? Move.COOPERATE : Move.DEFECT;
+            }
+            // 40% chance to just do the opposite of what the user did
+            if (Math.random() < 0.4) {
+                return userLastMove === Move.COOPERATE ? Move.DEFECT : Move.COOPERATE;
+            }
+            // Otherwise, random move
+            return Math.random() < 0.5 ? Move.COOPERATE : Move.DEFECT;
+        
+        default:
+            // Fallback to a simple Tit-for-Tat
+            if (turn === 0) return Move.COOPERATE;
+            return userLastMove;
     }
 }
 
@@ -64,7 +79,7 @@ function updateScores(game, userMove, computerMove) {
 }
 
 function checkGameOver(game) {
-    if (game.getUserScore() >= 20 || game.getComputerScore() >= 20 || game.getTurn() >= 9) {
+    if (game.getTurn() >= 9) { // Game ends after 10 turns (turns 0-9)
         game.setGameOver(true);
         if (game.getUserScore() > game.getComputerScore()) {
             game.setWinner("User");

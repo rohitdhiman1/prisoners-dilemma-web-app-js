@@ -72,9 +72,12 @@ const App = () => {
                         <div>Your Score: {game.userScore}</div>
                         <div>CLS-7 Score: {game.computerScore}</div>
                     </div>
-                    <div className="turn-indicator">
-                        Turn: {game.turn + 1} / 10
-                    </div>
+                    
+                    {!game.gameOver && (
+                        <div className="turn-indicator">
+                            Turn: {game.turn + 1} / 10
+                        </div>
+                    )}
 
                     {!game.gameOver && (
                         <div className="buttons">
